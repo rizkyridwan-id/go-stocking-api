@@ -32,8 +32,8 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	print(users)
-	c.JSON(http.StatusOK, gin.H{"message": "Berhasil berhasil oye"})
+
+	c.JSON(http.StatusOK, users)
 }
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
