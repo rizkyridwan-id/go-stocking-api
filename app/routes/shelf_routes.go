@@ -11,7 +11,7 @@ import (
 func RegisterShelfRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	shelfHandler := handlers.CreateShelfHandler(db)
 
-	router.Use(middlewares.AuthMiddleware())
+	router.Use(middlewares.ValidateSignatureMiddleware(), middlewares.AuthMiddleware())
 	router.POST("", shelfHandler.Create)
 	router.GET("", shelfHandler.FindAll)
 	router.PUT(":code", shelfHandler.Update)

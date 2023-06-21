@@ -11,7 +11,7 @@ import (
 func RegisterItemRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	itemHandler := handlers.CreateItemHandler(db)
 
-	router.Use(middlewares.AuthMiddleware())
+	router.Use(middlewares.ValidateSignatureMiddleware(), middlewares.AuthMiddleware())
 	router.POST("", itemHandler.Create)
 	router.GET("", itemHandler.Find)
 	router.POST("transaction", itemHandler.Transaction)

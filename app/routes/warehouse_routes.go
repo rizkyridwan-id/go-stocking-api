@@ -11,7 +11,7 @@ import (
 func registerWarehouseRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	warehouseHandler := handlers.CreateWarehouseHandler(db)
 
-	router.Use(middlewares.AuthMiddleware())
+	router.Use(middlewares.ValidateSignatureMiddleware(), middlewares.AuthMiddleware())
 	router.POST("", warehouseHandler.Create)
 	router.GET("", warehouseHandler.FindAll)
 	router.PUT(":code", warehouseHandler.Update)
