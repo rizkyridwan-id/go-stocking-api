@@ -20,7 +20,6 @@ func ValidateSignature(signature, timestamp string, tolerance int) bool {
 		return false
 	}
 	fmt.Println("[DEBUG] (ValidateSignature) timestamp:", timestamp)
-	fmt.Println("[DEBUG] (ValidateSignature) parsedTime:", parsedTime)
 
 	currentTime := time.Now()
 	fmt.Println("[DEBUG] (ValidateSignature) currentTime:", timestamp)

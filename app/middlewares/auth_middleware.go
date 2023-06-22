@@ -10,7 +10,7 @@ import (
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
-		jwtHelper := helpers.CreateJWTHelper()
+		jwtHelper := helpers.CreateJWTHelper(15)
 
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
