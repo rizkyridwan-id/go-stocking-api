@@ -7,6 +7,7 @@ import (
 	"stockingapi/app/helpers"
 	"stockingapi/app/models"
 	"stockingapi/app/repositories"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -115,14 +116,22 @@ func (h *UserHandler) LoginUser(c *gin.Context) {
 		return
 	}
 
-	jwtHelper := helpers.CreateJWTHelper()
+	expiresIn := 3 * time.Hour
+	jwtHelper := helpers.CreateJWTHelper(expiresIn)
+	refreshTokenExpiresIn := 24 * time.Hour
+	jwtHelperRefresh := helpers.CreateJWTHelper(refreshTokenExpiresIn)
 
 	token := jwtHelper.GenerateToken(reqBody.UserId)
+	tokenRefresh := jwtHelperRefresh.GenerateToken(reqBody.UserId)
+
 	response := dtos.LoginResponseDTO{
-		Message: "Login Successfully",
-		Token:   token,
-		UserId:  userModel.UserId,
-		Level:   userModel.Level,
+		Message:               "Login Successfully",
+		UserId:                userModel.UserId,
+		Level:                 userModel.Level,
+		Token:                 token,
+		ExpiresIn:             uint(expiresIn.Seconds()),
+		RefreshToken:          tokenRefresh,
+		RefreshTokenExpiresIn: uint(refreshTokenExpiresIn.Seconds()),
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -133,4 +142,41 @@ func (h *UserHandler) LoginUser(c *gin.Context) {
 func (h *UserHandler) IsAuthorized(c *gin.Context) {
 	user := c.MustGet("user").(*helpers.Claims)
 	c.JSON(http.StatusOK, gin.H{"message": "Hello ," + user.UserName})
+}
+
+func (h *UserHandler) RefreshToken(c *gin.Context) {
+	var reqBody dtos.RefreshTokenRequestDTO
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.Validate.Struct(reqBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	expiresIn := 3 * time.Hour
+	jwtHelper := helpers.CreateJWTHelper(expiresIn)
+
+	user, err := jwtHelper.ParseToken(reqBody.RefreshToken)
+
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Invalid Refresh Token."})
+		return
+	}
+
+	newToken := jwtHelper.GenerateToken(user.UserName)
+
+	refreshTokenExpiresIn := 24 * time.Hour
+	jwtHelperRefresh := helpers.CreateJWTHelper(refreshTokenExpiresIn)
+
+	newRefreshToken := jwtHelperRefresh.GenerateToken(user.UserName)
+
+	c.JSON(http.StatusOK, dtos.RefreshTokenResponseDTO{
+		Token:                 newToken,
+		ExpiresIn:             uint(expiresIn.Seconds()),
+		RefreshToken:          newRefreshToken,
+		RefreshTokenExpiresIn: uint(refreshTokenExpiresIn.Seconds()),
+	})
 }

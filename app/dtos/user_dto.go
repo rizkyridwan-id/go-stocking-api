@@ -17,8 +17,22 @@ type LoginRequestDTO struct {
 }
 
 type LoginResponseDTO struct {
-	Message string `json:"message"`
-	Token   string `json:"token"`
-	UserId  string `json:"user_id"`
-	Level   string `json:"level"`
+	Message               string `json:"message"`
+	UserId                string `json:"user_id"`
+	Level                 string `json:"level"`
+	Token                 string `json:"token"`
+	ExpiresIn             uint   `json:"expires_in"`
+	RefreshToken          string `json:"refresh_token"`
+	RefreshTokenExpiresIn uint   `json:"refresh_token_expires_in"`
+}
+
+type RefreshTokenRequestDTO struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
+type RefreshTokenResponseDTO struct {
+	Token                 string `json:"token"`
+	ExpiresIn             uint   `json:"expires_in"`
+	RefreshToken          string `json:"refresh_token"`
+	RefreshTokenExpiresIn uint   `json:"refresh_token_expires_in"`
 }

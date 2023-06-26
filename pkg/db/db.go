@@ -16,7 +16,7 @@ import (
 // @param dbName = database name
 // @param dbPort = database port
 func ConnectDB(dbHost string, dbUser string, dbPass string, dbName string, dbPort string) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
 		dbHost, dbUser, dbPass, dbName, dbPort)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})

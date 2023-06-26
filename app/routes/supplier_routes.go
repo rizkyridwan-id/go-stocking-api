@@ -11,7 +11,7 @@ import (
 func RegisterSupplierRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	supplierHandler := handlers.CreateSupplierHandler(db)
 
-	router.Use(middlewares.AuthMiddleware())
+	router.Use(middlewares.ValidateSignatureMiddleware(), middlewares.AuthMiddleware())
 	router.POST("", supplierHandler.Create)
 	router.GET("", supplierHandler.FindAll)
 	router.PUT(":code", supplierHandler.Update)

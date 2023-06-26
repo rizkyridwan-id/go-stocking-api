@@ -6,3 +6,5 @@ export DB_PASS=
 export DB_NAME=db_name
 export DB_PORT=5432
 export JWT_SECRET_KEY=your_jwt_key
+export API_KEY=api-key
+export SECRET_KEY=secret-key

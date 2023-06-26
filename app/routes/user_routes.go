@@ -10,9 +10,10 @@ import (
 
 func registerUserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	userHandler := handlers.CreateUserHandler(db)
-
+	router.Use(middlewares.ValidateSignatureMiddleware())
 	router.POST("", userHandler.CreateUser)
 	router.POST("/login", userHandler.LoginUser)
+	router.POST("/refresh-token", userHandler.RefreshToken)
 
 	router.Use(middlewares.AuthMiddleware())
 	router.GET("", userHandler.GetUser)

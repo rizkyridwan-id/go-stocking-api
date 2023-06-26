@@ -20,9 +20,9 @@ type JWTHelper struct {
 
 func (j *JWTHelper) GenerateToken(userId string) string {
 	claims := &Claims{
-		UserName:         userId,
+		UserName: userId,
 		RegisteredClaims: jwt.RegisteredClaims{
-			// ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.exp * time.Minute)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.exp)),
 		},
 	}
 
@@ -54,10 +54,10 @@ func (j *JWTHelper) ParseToken(tokenString string) (*Claims, error) {
 	return claims, nil
 }
 
-func CreateJWTHelper() JWTHelper {
+func CreateJWTHelper(exp time.Duration) JWTHelper {
 	configProps := configs.LoadConfig()
 	return JWTHelper{
 		secretKey: []byte(configProps.JWT_SECRET_KEY),
-		exp:       15,
+		exp:       exp,
 	}
 }

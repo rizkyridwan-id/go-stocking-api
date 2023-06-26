@@ -12,6 +12,8 @@ type Config struct {
 	DB_NAME        string
 	DB_PORT        string
 	JWT_SECRET_KEY string
+	API_KEY        string
+	SECRET_KEY     string
 }
 
 func getEnv(key string, defaultValue string) string {
@@ -33,5 +35,7 @@ func LoadConfig() Config {
 		DB_NAME:        getEnv("DB_NAME", ""),
 		DB_PORT:        getEnv("DB_PORT", ""),
 		JWT_SECRET_KEY: getEnv("JWT_SECRET_KEY", ""),
+		API_KEY:        getEnv("API_KEY", ""),
+		SECRET_KEY:     getEnv("SECRET_KEY", ""),
 	}
 }
