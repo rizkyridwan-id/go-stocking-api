@@ -12,13 +12,18 @@ import (
 func main() {
 	appConfig := configs.LoadConfig()
 
+	redis, err := db.ConnectRedis("localhost:6379", "", "", 0)
+	if err != nil {
+		log.Fatal("Cannot Connect to Redis.")
+		return
+	}
 	db, err := db.ConnectDB(appConfig.DB_HOST, appConfig.DB_USER, appConfig.DB_PASS, appConfig.DB_NAME, appConfig.DB_PORT)
 	if err != nil {
 		log.Fatal("Cannot Connect to Database! (ERR_DB_CONNECTION)")
 		return
 	}
 
-	router := routes.SetupRoutes(db)
+	router := routes.SetupRoutes(db, redis)
 	router.SetTrustedProxies(nil)
 
 	if appConfig.GIN_MODE == "release" {

@@ -5,11 +5,10 @@ import (
 	"stockingapi/app/middlewares"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func registerWarehouseRoutes(router *gin.RouterGroup, db *gorm.DB) {
-	warehouseHandler := handlers.CreateWarehouseHandler(db)
+func registerWarehouseRoutes(router *gin.RouterGroup, dbOpts *DBOpts) {
+	warehouseHandler := handlers.CreateWarehouseHandler(dbOpts.db)
 
 	router.Use(middlewares.ValidateSignatureMiddleware(), middlewares.AuthMiddleware())
 	router.POST("", warehouseHandler.Create)

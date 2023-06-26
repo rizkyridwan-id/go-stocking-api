@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"stockingapi/app/dtos"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -18,10 +20,11 @@ import (
 type UserHandler struct {
 	Validate       *validator.Validate
 	UserRepository *repositories.UserRepository
+	Redis          *redis.Client
 }
 
-func CreateUserHandler(db *gorm.DB) *UserHandler {
-	return &UserHandler{UserRepository: repositories.CreateUserRepository(db), Validate: validator.New()}
+func CreateUserHandler(db *gorm.DB, redis *redis.Client) *UserHandler {
+	return &UserHandler{UserRepository: repositories.CreateUserRepository(db), Validate: validator.New(), Redis: redis}
 }
 
 func (h *UserHandler) GetUser(c *gin.Context) {
@@ -124,6 +127,10 @@ func (h *UserHandler) LoginUser(c *gin.Context) {
 	token := jwtHelper.GenerateToken(reqBody.UserId)
 	tokenRefresh := jwtHelperRefresh.GenerateToken(reqBody.UserId)
 
+	ctx := context.Background()
+	redisKey := computeRedisKey(reqBody.UserId, tokenRefresh)
+	h.Redis.Set(ctx, redisKey, 0, refreshTokenExpiresIn)
+
 	response := dtos.LoginResponseDTO{
 		Message:               "Login Successfully",
 		UserId:                userModel.UserId,
@@ -166,12 +173,23 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
+	ctx := context.Background()
+	redisKey := computeRedisKey(user.UserName, reqBody.RefreshToken)
+
+	if delResult := h.Redis.Del(ctx, redisKey); delResult.Err() != nil || delResult.Val() == 0 {
+		fmt.Printf("[ERROR] (RefreshToken) Could not delete refresh token for userId/tokenId: %s/%s %v\n", user.UserName, reqBody.RefreshToken, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Refresh Token Invalid."})
+		return
+	}
+
 	newToken := jwtHelper.GenerateToken(user.UserName)
 
 	refreshTokenExpiresIn := 24 * time.Hour
 	jwtHelperRefresh := helpers.CreateJWTHelper(refreshTokenExpiresIn)
 
 	newRefreshToken := jwtHelperRefresh.GenerateToken(user.UserName)
+	newRedisKey := computeRedisKey(user.UserName, newRefreshToken)
+	h.Redis.Set(ctx, newRedisKey, 0, refreshTokenExpiresIn)
 
 	c.JSON(http.StatusOK, dtos.RefreshTokenResponseDTO{
 		Token:                 newToken,
@@ -179,4 +197,9 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 		RefreshToken:          newRefreshToken,
 		RefreshTokenExpiresIn: uint(refreshTokenExpiresIn.Seconds()),
 	})
+
+}
+
+func computeRedisKey(userId string, refreshToken string) string {
+	return fmt.Sprintf("tkn_%s_%s", userId, refreshToken)
 }

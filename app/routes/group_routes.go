@@ -5,11 +5,10 @@ import (
 	"stockingapi/app/middlewares"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func RegisterGroupRoutes(router *gin.RouterGroup, db *gorm.DB) {
-	groupHandler := handlers.CreateGroupHandler(db)
+func RegisterGroupRoutes(router *gin.RouterGroup, dbOpts *DBOpts) {
+	groupHandler := handlers.CreateGroupHandler(dbOpts.db)
 
 	router.Use(middlewares.ValidateSignatureMiddleware(), middlewares.AuthMiddleware())
 	router.POST("", groupHandler.Create)
